@@ -45,3 +45,9 @@ EXPOSE 8069 8071
 
 # Set the default config file
 ENV OPENERP_SERVER /etc/odoo/openerp-server.conf
+
+RUN mkdir /home/odoo
+WORKDIR /home/odoo
+COPY ./odoo/requirements.txt /home/odoo/requirements.txt
+
+RUN pip install -r requirements.txt
