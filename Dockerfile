@@ -1,6 +1,10 @@
 FROM debian:jessie
 MAINTAINER Odoo S.A. <info@odoo.com>
 
+RUN rm /etc/apt/sources.list
+COPY ./sources.list /etc/apt/sources.list
+COPY ./.pydistutils.cfg /root/.pydistutils.cfg
+
 # Install some deps, lessc and less-plugin-clean-css, and wkhtmltopdf
 RUN set -x; \
         apt-get update \
@@ -12,6 +16,15 @@ RUN set -x; \
             python-pyinotify \
             python-renderpm \
             python-support \
+            python-pip \
+            gcc \
+            python-dev \
+            libldap2-dev \
+            libsasl2-dev \
+            libpq-dev \
+            libjpeg-dev \
+            libxml2-dev \
+            libxslt-dev \
         && curl -o wkhtmltox.deb -SL http://nightly.odoo.com/extra/wkhtmltox-0.12.1.2_linux-jessie-amd64.deb \
         && echo '40e8b906de658a2221b15e4e8cd82565a47d7ee8 wkhtmltox.deb' | sha1sum -c - \
         && dpkg --force-depends -i wkhtmltox.deb \
@@ -22,11 +35,9 @@ RUN set -x; \
 # Copy entrypoint script and Odoo configuration file
 COPY ./entrypoint.sh /
 COPY ./openerp-server.conf /etc/odoo/
-RUN chown odoo /etc/odoo/openerp-server.conf
 
 # Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
-RUN mkdir -p /mnt/extra-addons \
-        && chown -R odoo /mnt/extra-addons
+RUN mkdir -p /mnt/extra-addons 
 VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
 
 # Expose Odoo services
@@ -34,9 +45,3 @@ EXPOSE 8069 8071
 
 # Set the default config file
 ENV OPENERP_SERVER /etc/odoo/openerp-server.conf
-
-# Set default user when running the container
-USER odoo
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["openerp-server"]
